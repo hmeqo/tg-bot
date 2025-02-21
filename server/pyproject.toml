@@ -1,0 +1,37 @@
+[project]
+name = "tg-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "hmeqo", email = "hmeqo@qq.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "aerich[toml]>=0.8.1",
+    "aiogram>=3.17.0",
+    "click>=8.1.8",
+    "fastapi>=0.115.8",
+    "granian[reload]>=1.7.6",
+    "hupper>=1.12.1",
+    "pendulum>=3.0.0",
+    "pydantic-settings>=2.7.1",
+    "python-dotenv>=1.0.1",
+    "redis>=5.2.1",
+    "setuptools>=75.8.0",
+    "tortoise-orm[asyncpg]>=0.24.0",
+]
+
+[project.scripts]
+run-tg-bot = "project.scripts:run_tg_bot"
+run-fastapi = "project.scripts:run_fastapi"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tg_bot"]
+
+[tool.aerich]
+tortoise_orm = "project.settings.TORTOISE_ORM"
+location = "src/backend/migrations"
+src_folder = "./src"

@@ -1,0 +1,2 @@
+class ReplyAbortError(Exception):
+    pass

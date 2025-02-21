@@ -1,0 +1,30 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "server"
+        },
+        {
+            "path": "client"
+        }
+    ],
+    "settings": {
+        "css.lint.unknownAtRules": "ignore",
+        "path-autocomplete.pathMappings": {
+            "@": "${folder}/app",
+            "assets": "${folder}/app/assets",
+            "public": "${folder}/public"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.python",
+            "charliermarsh.ruff",
+            "nuxtr.nuxt-vscode-extentions",
+            "tarrow.css-class-intellisense",
+            "antfu.unocss"
+        ]
+    }
+}

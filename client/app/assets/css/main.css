@@ -1,0 +1,7 @@
+/* @import './components.css'; */
+@import './transition.css';
+@import './fonts.css';
+
+* {
+  box-sizing: border-box;
+}

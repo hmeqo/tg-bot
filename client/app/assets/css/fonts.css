@@ -1,0 +1,8 @@
+@font-face {
+  font-family: 'Maple';
+  src: url('assets/fonts/ttf-maple/MapleMono-NF-Regular.ttf');
+}
+
+body {
+  font-family: Maple, inherit;
+}
