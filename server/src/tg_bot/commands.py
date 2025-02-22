@@ -117,7 +117,7 @@ async def inflow(message: Message, match: Match[str]):
 
 
 @dp.message(
-    F.text.regexp(r"^\-\s*(\d+(?:\.\d+)?)(?:\s*/\s*(\d+(?:\.\d+)?))?(?:\s*\*\s*(\d+(?:\.\d+)?))?$").as_("match")
+    F.text.regexp(r"^下发\s*(\d+(?:\.\d+)?)(?:\s*/\s*(\d+(?:\.\d+)?))?(?:\s*\*\s*(\d+(?:\.\d+)?))?$").as_("match")
 )
 @atomic()
 @require_admin
