@@ -97,7 +97,7 @@ async def inflow(
     exchange_rate: Optional[Decimal] = None,
 ):
     session = await get_daily_session(message)
-    transaction = await Transaction.create(
+    await Transaction.create(
         session=session,
         type=Transaction.Type.INCOME,
         currency=Transaction.Currency.CNY,
@@ -106,7 +106,7 @@ async def inflow(
         exchange_rate=session.in_exchange_rate if exchange_rate is None else round(exchange_rate, 2),
         operator=await get_user(message),
     )
-    await message.reply(f"已入账: {transaction.amount.normalize():.2f} CNY")
+    await reply_bill(message)
 
 
 async def outflow(
@@ -116,7 +116,7 @@ async def outflow(
     exchange_rate: Optional[Decimal] = None,
 ):
     session = await get_daily_session(message)
-    transaction = await Transaction.create(
+    await Transaction.create(
         session=session,
         type=Transaction.Type.PAYOUT,
         currency=Transaction.Currency.CNY,
@@ -125,14 +125,14 @@ async def outflow(
         exchange_rate=session.out_exchange_rate if exchange_rate is None else round(exchange_rate, 2),
         operator=await get_user(message),
     )
-    await message.reply(f"已下发: {transaction.amount.normalize():.2f} CNY")
+    await reply_bill(message)
 
 
 async def inflow_correction(
     message: Message, amount: Decimal, fee_rate: Optional[Decimal] = None, exchange_rate: Optional[Decimal] = None
 ):
     session = await get_daily_session(message)
-    transaction = await Transaction.create(
+    await Transaction.create(
         session=session,
         type=Transaction.Type.INCOME,
         currency=Transaction.Currency.CNY,
@@ -142,7 +142,7 @@ async def inflow_correction(
         operator=await get_user(message),
         is_correction=True,
     )
-    await message.reply(f"已入账: {transaction.amount.normalize():.2f} CNY")
+    await reply_bill(message)
 
 
 async def outflow_correction(
@@ -152,7 +152,7 @@ async def outflow_correction(
     exchange_rate: Optional[Decimal] = None,
 ):
     session = await get_daily_session(message)
-    transaction = await Transaction.create(
+    await Transaction.create(
         session=session,
         type=Transaction.Type.PAYOUT,
         currency=Transaction.Currency.CNY,
@@ -162,7 +162,7 @@ async def outflow_correction(
         operator=await get_user(message),
         is_correction=True,
     )
-    await message.reply(f"已下发: {transaction.amount.normalize():.2f} CNY")
+    await reply_bill(message)
 
 
 async def list_transactions(message: Message):
