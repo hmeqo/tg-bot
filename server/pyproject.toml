@@ -23,6 +23,7 @@ dependencies = [
 [project.scripts]
 run-tg-bot = "project.scripts:run_tg_bot"
 run-fastapi = "project.scripts:run_fastapi"
+serve-fastapi = "project.scripts:serve_fastapi"
 
 [build-system]
 requires = ["hatchling"]
