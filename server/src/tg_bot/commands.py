@@ -43,7 +43,7 @@ async def test(message: Message):
     await message.reply(f"测试: {message.text}")
 
 
-@dp.message(Command("help") | F.text.regexp(r"^使用手册$"))
+@dp.message(Command("help"))
 @require_admin
 async def help(message: Message):
     await message.reply(HELP)
