@@ -5,7 +5,8 @@ from tortoise.models import Model
 
 
 class User(Model):
-    id = fields.BigIntField(pk=True, description="用户ID")
+    id = fields.BigIntField(pk=True)
+    chat_id = fields.BigIntField(null=True, description="用户ID")
     username = fields.CharField(max_length=255, null=True, description="用户名")
     joined_at = fields.DatetimeField(auto_now_add=True, description="加入时间")
 
@@ -14,7 +15,8 @@ class User(Model):
 
 
 class Group(Model):
-    id = fields.BigIntField(pk=True, description="群组ID")
+    id = fields.BigIntField(pk=True)
+    chat_id = fields.BigIntField(description="群组ID")
     created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
@@ -35,7 +37,7 @@ class GroupOperator(Model):
 class DailySession(Model):
     id = fields.BigIntField(pk=True)
     group = fields.ForeignKeyField("models.Group", related_name="sessions")
-    start_time = fields.DatetimeField(auto_now_add=True, description="开始时间")
+    started_at = fields.DatetimeField(auto_now_add=True, description="开始时间")
     in_fee_rate = fields.DecimalField(max_digits=10, decimal_places=4, default=0, verbose_name="费率")
     in_exchange_rate = fields.DecimalField(max_digits=10, decimal_places=2, default=1, verbose_name="汇率")
     out_fee_rate = fields.DecimalField(max_digits=10, decimal_places=4, default=0, verbose_name="费率")
@@ -50,9 +52,25 @@ class Transaction(Model):
         INCOME = "income"
         PAYOUT = "payout"
 
+        @property
+        def name(self):
+            match self:
+                case self.INCOME:
+                    return "入款"
+                case self.PAYOUT:
+                    return "下发"
+
     class Currency(StrEnum):
         CNY = "CNY"
         USDT = "USDT"
+
+        @property
+        def name(self):
+            match self:
+                case self.CNY:
+                    return "人民币"
+                case self.USDT:
+                    return "USDT"
 
     id = fields.BigIntField(pk=True)
     session = fields.ForeignKeyField("models.DailySession", related_name="transactions")

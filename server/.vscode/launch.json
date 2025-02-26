@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: TG Bot",
+            "name": "Server: TG Bot",
             "type": "debugpy",
             "request": "launch",
             "module": "project.cli",
             "args": ["run-tg-bot"]
         },
         {
-            "name": "Python Debugger: Fastapi",
+            "name": "Server: Fastapi",
             "type": "debugpy",
             "request": "launch",
             "module": "project.cli",

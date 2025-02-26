@@ -22,7 +22,9 @@
         "recommendations": [
             "ms-python.python",
             "charliermarsh.ruff",
-            "nuxtr.nuxt-vscode-extentions",
+            "alimozdemir.vscode-nuxt-dx-tools",
+            "vue.volar",
+            "skyboost.nuxt-3-goto",
             "tarrow.css-class-intellisense",
             "antfu.unocss"
         ]

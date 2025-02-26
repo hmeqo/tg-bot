@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 from re import Match
 
@@ -6,13 +7,16 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from tortoise.transactions import atomic
 
-from tg_bot.exceptions import ReplyAbortError
-
 from .backend import sdk
 from .core import dp
-from .decorators import error_handler, require_admin
+from .decorators import error_handler, require_admin, require_group
 
-HELP = """使用手册
+README = """README
+
+需将本机器人拉入群组使用, 输入 /help 查看帮助
+"""
+
+HELP = """帮助
 开始记账输入:
     '开始记账' 或 '开始', 默认到第二天4点结束
 设置入款汇率:
@@ -33,33 +37,60 @@ HELP = """使用手册
     '-1000' (下发1000人民币)
     '-1000/7*0.9' (下发1000人民币并设置汇率7.0, 费率10%)
 账单:
-    显示今日账单, 并显示最近3条数据
+    '显示账单' 或 '账单' 显示今日账单, 并显示最近3条数据
+操作人:
+    '操作人列表'
+    '设置操作人 @xxx'
+    '移除操作人 @xxx'
 """
 
 
-@dp.message(Command("test"))
+@dp.message(Command("readme"))
 async def test(message: Message):
     assert message.from_user
-    await message.reply(f"测试: {message.text}")
+    await message.reply(README)
 
 
 @dp.message(Command("help"))
 @require_admin
+@require_group
 async def help(message: Message):
     await message.reply(HELP)
 
 
-@dp.message(F.text.regexp(r"^设置操作人((?:\s*@\S+)+)$"))
+@dp.message(F.text.regexp(r"^操作人列表$"))
 @atomic()
 @require_admin
+@require_group
 @error_handler
-async def set_operator(message: Message):
-    raise ReplyAbortError("暂不支持此功能")
+async def show_operators(message: Message):
+    await sdk.list_operators(message)
+
+
+@dp.message(F.text.regexp(r"^设置操作人((?:\s*@\S+)+)$").as_("match"))
+@atomic()
+@require_admin
+@require_group
+@error_handler
+async def add_operator(message: Message, match: Match[str]):
+    usernames = re.findall(r"@(\S+)", match[1])
+    await sdk.add_operator(message, usernames)
+
+
+@dp.message(F.text.regexp(r"^移除操作人((?:\s*@\S+)+)$").as_("match"))
+@atomic()
+@require_admin
+@require_group
+@error_handler
+async def remove_operator(message: Message, match: Match[str]):
+    usernames = re.findall(r"@(\S+)", match[1])
+    await sdk.remove_operator(message, usernames)
 
 
 @dp.message(F.text.regexp(r"^开始(记账)?$"))
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def start(message: Message):
     await sdk.new_day(message)
@@ -68,6 +99,7 @@ async def start(message: Message):
 @dp.message(F.text.regexp(r"^设置(?:入款)?费率\s*(\d+(?:\.\d+)?)%?$").as_("match"))
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def set_in_fee_rate(message: Message, match: Match[str]):
     rate = Decimal(match[1]) / 100
@@ -77,6 +109,7 @@ async def set_in_fee_rate(message: Message, match: Match[str]):
 @dp.message(F.text.regexp(r"^设置(?:入款)?汇率\s*(\d+(?:\.\d+)?)$").as_("match"))
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def set_in_exchange_rate(message: Message, match: Match[str]):
     rate = Decimal(match[1])
@@ -86,6 +119,7 @@ async def set_in_exchange_rate(message: Message, match: Match[str]):
 @dp.message(F.text.regexp(r"^设置(?:下发|出款)费率\s*(\d+(?:\.\d+)?)%?$").as_("match"))
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def set_out_fee_rate(message: Message, match: Match[str]):
     rate = Decimal(match[1]) / 100
@@ -93,8 +127,9 @@ async def set_out_fee_rate(message: Message, match: Match[str]):
 
 
 @dp.message(F.text.regexp(r"^设置(?:下发|出款)汇率\s*(\d+(?:\.\d+)?)$").as_("match"))
-@require_admin
 @atomic()
+@require_admin
+@require_group
 @error_handler
 async def set_out_exchange_rate(message: Message, match: Match[str]):
     rate = Decimal(match[1])
@@ -106,6 +141,7 @@ async def set_out_exchange_rate(message: Message, match: Match[str]):
 )
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def inflow(message: Message, match: Match[str]):
     amount, exchange_rate, fee_rate = match[1], match[2], match[3]
@@ -121,6 +157,7 @@ async def inflow(message: Message, match: Match[str]):
 )
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def outflow(message: Message, match: Match[str]):
     amount, exchange_rate, fee_rate = match[1], match[2], match[3]
@@ -136,6 +173,7 @@ async def outflow(message: Message, match: Match[str]):
 )
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def inflow_correction(message: Message, match: Match[str]):
     amount, exchange_rate, fee_rate = match[1], match[2], match[3]
@@ -151,6 +189,7 @@ async def inflow_correction(message: Message, match: Match[str]):
 )
 @atomic()
 @require_admin
+@require_group
 @error_handler
 async def outflow_correction(message: Message, match: Match[str]):
     amount, exchange_rate, fee_rate = match[1], match[2], match[3]
@@ -163,6 +202,15 @@ async def outflow_correction(message: Message, match: Match[str]):
 
 @dp.message(F.text.regexp(r"^(?:显示)?账单$"))
 @require_admin
+@require_group
 @error_handler
 async def show_bill(message: Message):
     await sdk.show_bill(message)
+
+
+@dp.message(F.text.regexp(r".*"))
+@require_group
+@error_handler
+async def echo(message: Message):
+    """无差别监听聊天记录, 记录每个用户的id"""
+    await sdk.get_user(message)

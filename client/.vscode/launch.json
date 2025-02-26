@@ -6,7 +6,7 @@
     "configurations": [
         {
             "type": "node-terminal",
-            "name": "Run Script: dev",
+            "name": "Client: dev",
             "request": "launch",
             "command": "deno task dev",
             "cwd": "${workspaceFolder}"

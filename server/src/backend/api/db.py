@@ -1,7 +1,9 @@
-from tortoise import Tortoise, run_async
-
 # from aioredis import
 from project import settings
+from redis import asyncio as aioredis
+from tortoise import Tortoise, run_async
+
+redis_client = aioredis.from_url("redis://localhost:6379/1", decode_responses=True)
 
 
 async def _init():

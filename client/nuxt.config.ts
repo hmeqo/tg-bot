@@ -18,8 +18,7 @@ export default defineNuxtConfig({
 
   ssr: false,
   routeRules: {
-    '/api/**': { proxy: `${process.env.API_BASE_URL || 'http://127.0.0.1:8000'}/api/**` },
-    '/media/**': { proxy: `${process.env.API_BASE_URL || 'http://127.0.0.1:8000'}/media/**` }
+    '/api/**': { proxy: `${process.env.API_BASE_URL ?? 'http://127.0.0.1:8000'}/api/**` }
   },
 
   nitro: {

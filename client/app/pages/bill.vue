@@ -22,11 +22,17 @@ type User = {
 
 const token = useQueryStr('token', { showError: true })
 
+const { message } = useNaiveApi()
+
 const model = reactive({
   date: Date.now()
 })
 
-const { data, execute, error } = useAsyncData<{
+const {
+  data,
+  execute: refresh,
+  error
+} = useAsyncData<{
   inflow_without_correction: Transaction[]
   inflow_with_correction: Transaction[]
   outflow_without_correction: Transaction[]
@@ -42,7 +48,14 @@ const { data, execute, error } = useAsyncData<{
   })
 })
 
+const { execute: exportBill } = useAsyncData(() => $fetch(``, { params: { token: token.value } }))
+
 const columns: DataTableColumns<Transaction> = [
+  {
+    title: '时间',
+    key: 'created_at',
+    render: (row) => dayjs(row.created_at).format('HH:mm:ss')
+  },
   {
     title: '类型',
     key: 'type',
@@ -81,11 +94,6 @@ const columns: DataTableColumns<Transaction> = [
     title: '修正',
     key: 'is_correction',
     render: (row) => (row.is_correction ? '是' : '否')
-  },
-  {
-    title: '时间',
-    key: 'created_at',
-    render: (row) => dayjs(row.created_at).format('HH:mm:ss')
   }
 ]
 </script>
@@ -98,8 +106,10 @@ const columns: DataTableColumns<Transaction> = [
           <span>选择查询日期:</span>
           <NDatePicker v-model:value="model.date" type="date" :is-date-disabled="disableFutureDates" />
         </label>
-        <NButton type="primary" @click="() => execute()">查询账单</NButton>
-        <NButton type="primary">导出账单</NButton>
+        <NButton type="primary" @click="refresh()">查询账单</NButton>
+        <a :href="urlToString({ path: '/api/bill/export', query: { token } })" download>
+          <NButton type="primary" @click="exportBill()">导出账单</NButton>
+        </a>
       </NCard>
       <NCard v-if="!error" class="shadow" title="账单详情">
         <h3 class="text-xl font-bold">入款</h3>
