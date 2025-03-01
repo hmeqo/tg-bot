@@ -211,6 +211,6 @@ async def show_bill(message: Message):
 @dp.message(F.text.regexp(r".*"))
 @require_group
 @error_handler
-async def echo(message: Message):
+async def record_user_id(message: Message):
     """无差别监听聊天记录, 记录每个用户的id"""
     await sdk.get_user(message)
