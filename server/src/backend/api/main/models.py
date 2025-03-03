@@ -9,6 +9,7 @@ class User(Model):
     chat_id = fields.BigIntField(null=True, description="用户ID")
     username = fields.CharField(max_length=255, null=True, description="用户名")
     joined_at = fields.DatetimeField(auto_now_add=True, description="加入时间")
+    is_staff = fields.BooleanField(default=False, description="机器人管理员")
 
     class Meta:
         table = "tgbot_user"

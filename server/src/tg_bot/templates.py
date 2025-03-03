@@ -36,10 +36,10 @@ async def reply_bill(message: Message, text: str | None = None):
     text = f"""{text or ""}
 
 入款:
-{detail_transaction(reversed(income_list[:3])) or "无"}
+{detail_transaction(income_list[-3:]) or "无"}
 
 下发:
-{detail_transaction(reversed(payout_list[:3])) or "无"}
+{detail_transaction(payout_list[-3:]) or "无"}
 
 今日入款合计: {total_income.normalize():.2f}
 今日出款合计: {total_payout.normalize():.2f}

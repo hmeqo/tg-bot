@@ -3,47 +3,51 @@ from typing import Optional, cast
 
 import pendulum
 from aiogram import html
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, ContentType, Message
 from backend.api.db import redis_client
 from backend.api.main import cache
 from backend.api.main.models import *
 from project.env import web_settings
+
 from tg_bot.exceptions import ReplyAbortError
 from tg_bot.templates import reply_bill
-from tortoise.expressions import Q
+
+from .fns import *
 
 
-async def get_user(message: Message):
-    assert message.from_user and message.from_user.username
-    user = await User.filter(Q(chat_id=message.from_user.id) | Q(username=message.from_user.username)).first()
-    if not user:
-        user = await User.create(chat_id=message.from_user.id, username=message.from_user.username)
-    # 更新用户名等信息
-    if user.chat_id != message.from_user.id or user.username != message.from_user.username:
-        user.chat_id = message.from_user.id
-        user.username = message.from_user.username
-        await user.save()
-    return user
+async def record(message: Message):
+    await get_user(message)
+    if await redis_client.exists(f":broadcast:{message.chat.id}"):
+        await broadcast(message)
+        await redis_client.delete(f":broadcast:{message.chat.id}")
+    if await redis_client.exists(f":broadcast_forward:{message.chat.id}"):
+        await broadcast_forward(message)
+        await redis_client.delete(f":broadcast_forward:{message.chat.id}")
 
 
-async def get_group(message: Message):
-    return (await Group.get_or_create(chat_id=message.chat.id))[0]
+async def broadcast_prepare(message: Message):
+    await message.reply("请发送要广播的消息")
+    await redis_client.setex(f":broadcast:{message.chat.id}", 60 * 5, message.message_id)
 
 
-async def get_daily_session(message: Message):
-    group = await get_group(message)
-    session = await DailySession.filter(group=group).last()
-    if not session or pendulum.instance(session.started_at).end_of("day").add(hours=4) < pendulum.instance(
-        message.date
-    ).start_of("day"):
-        raise ReplyAbortError("请先开始记账")
-    return session
+async def broadcast_forward_prepare(message: Message):
+    await message.reply("请发送要广播的转发内容")
+    await redis_client.setex(f":broadcast_forward:{message.chat.id}", 60 * 5, message.message_id)
 
 
-async def is_operator(message: Message, user: Optional[User] = None):
-    group = await get_group(message)
-    user = user or await get_user(message)
-    return await GroupOperator.filter(group=group, user=user).exists()
+async def broadcast(message: Message):
+    assert message.bot
+    if message.content_type is not ContentType.TEXT:
+        ReplyAbortError("只支持文本消息")
+    for i in await Group.all():
+        await message.bot.send_message(i.chat_id, message.html_text)
+    await message.reply("已广播消息")
+
+
+async def broadcast_forward(message: Message):
+    for i in await Group.all():
+        await message.forward(i.chat_id)
+    await message.reply("已广播消息")
 
 
 async def list_operators(message: Message):

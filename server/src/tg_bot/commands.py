@@ -9,7 +9,7 @@ from tortoise.transactions import atomic
 
 from .backend import sdk
 from .core import dp
-from .decorators import error_handler, require_admin, require_group
+from .decorators import error_handler, require_admin, require_bot_admin, require_group
 
 README = """README
 
@@ -31,11 +31,13 @@ HELP = """帮助
     '设置下发费率 10'
     '设置下发费率 10%'
 入款:
-    '+1000' (入账1000人民币)
-    '+1000/7*0.9' (入账1000人民币并设置汇率7.0, 费率10%)
+    '+1000' - 入账1000人民币
+    '+1000/7*0.9' - 入账1000人民币并设置汇率7.0, 费率10%
+    '入款-100' - 入款修正
 下发:
-    '-1000' (下发1000人民币)
-    '-1000/7*0.9' (下发1000人民币并设置汇率7.0, 费率10%)
+    '-1000' - 下发1000人民币
+    '-1000/7*0.9' - 下发1000人民币并设置汇率7.0, 费率10%
+    '下发-100' - 下发修正
 账单:
     '显示账单' 或 '账单' 显示今日账单, 并显示最近3条数据
 操作人:
@@ -56,6 +58,22 @@ async def test(message: Message):
 @require_group
 async def help(message: Message):
     await message.reply(HELP)
+
+
+@dp.message(Command("broadcast"))
+@atomic()
+@require_bot_admin
+@error_handler
+async def broadcast(message: Message):
+    await sdk.broadcast_prepare(message)
+
+
+@dp.message(Command("broadcast_forward"))
+@atomic()
+@require_bot_admin
+@error_handler
+async def broadcast_forward(message: Message):
+    await sdk.broadcast_forward_prepare(message)
 
 
 @dp.message(F.text.regexp(r"^操作人列表$"))
@@ -208,9 +226,8 @@ async def show_bill(message: Message):
     await sdk.show_bill(message)
 
 
-@dp.message(F.text.regexp(r".*"))
+@dp.message()
 @require_group
 @error_handler
-async def record_user_id(message: Message):
-    """无差别监听聊天记录, 记录每个用户的id"""
-    await sdk.get_user(message)
+async def record(message: Message):
+    await sdk.record(message)
