@@ -22,6 +22,8 @@ async def get_user(message: Message):
 
 
 async def get_group(message: Message):
+    if message.chat.type != "group":
+        raise ReplyAbortError("请在群组中使用")
     return (await Group.get_or_create(chat_id=message.chat.id))[0]
 
 
